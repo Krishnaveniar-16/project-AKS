@@ -42,7 +42,7 @@ jobs:
     - name: Get AKS Credentials
       run: |
         az aks get-credentials \
-          --resource-group appRG1603 \
+          --resource-group appRG-1603 \
           --name appAKS1603 \
           --overwrite-existing
 
