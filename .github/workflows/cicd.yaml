@@ -22,6 +22,18 @@ jobs:
     - name: Build Backend Image
       run: |
         docker build -t appacr1603.azurecr.io/backend:${{ github.sha }} ./backend
+    - name: Run Trivy Scan (Backend)   #TRIVY SCAN (BACKEND)
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: appacr1603.azurecr.io/backend:${{ github.sha }}
+        format: json
+        output: backend-trivy-report.json
+        exit-code: 0
+    - name: Upload Backend Scan Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-trivy-report
+        path: backend-trivy-report.json
 
     - name: Push Backend Image
       run: |
@@ -30,6 +42,18 @@ jobs:
     - name: Build Frontend Image
       run: |
         docker build -t appacr1603.azurecr.io/frontend:${{ github.sha }} ./frontend
+    - name: Run Trivy Scan (Frontend)  #TRIVY SCAN (FRONTEND)
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: appacr1603.azurecr.io/frontend:${{ github.sha }}
+        format: json
+        output: frontend-trivy-report.json
+        exit-code: 0
+    - name: Upload Frontend Scan Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-trivy-report
+        path: frontend-trivy-report.json
 
     - name: Push Frontend Image
       run: |
