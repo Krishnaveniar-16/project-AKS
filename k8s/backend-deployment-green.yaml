@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment-green
+  labels:
+    app: backend
+    color: green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+      color: green
+  template:
+    metadata:
+      labels:
+        app: backend
+        color: green
+    spec:
+      containers:
+        - name: backend
+          image: appacr1603.azurecr.io/backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DB_HOST
+              value: mysql
+            - name: DB_USER
+              value: root
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: DB_NAME
+              value: mydb
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-deployment-blue
+  name: frontend-deployment-green
   labels:
     app: frontend
-    color: blue
+    color: green
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: frontend
-      color: blue
+      color: green
   template:
     metadata:
       labels:
         app: frontend
-        color: blue
+        color: green
     spec:
       containers:
         - name: frontend
