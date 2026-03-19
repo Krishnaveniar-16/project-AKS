@@ -46,6 +46,17 @@ jobs:
           --overwrite-existing
 
 
-    - name: Deploy to AKS
+    - name: Apply Kubernetes manifests
+      run: kubectl apply -f k8s/
+
+ 
+    - name: Deploy latest images
       run: |
-        kubectl apply -f k8s/
+        kubectl set image deployment/backend-deployment backend=$ACR_LOGIN_SERVER/backend:${{ github.sha }}
+        kubectl set image deployment/frontend-deployment frontend=$ACR_LOGIN_SERVER/frontend:${{ github.sha }}
+
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/backend-deployment
+        kubectl rollout status deployment/frontend-deployment
+        
