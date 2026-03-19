@@ -23,20 +23,20 @@ jobs:
 
     - name: Build Backend Image
       run: |
-        docker build -t appacr1603.azurecr.io/backend:latest ./backend
+        docker build -t appacr1603.azurecr.io/backend:${{ github.sha }} ./backend
 
     - name: Push Backend Image
       run: |
-        docker push appacr1603.azurecr.io/backend:latest
+        docker push appacr1603.azurecr.io/backend:${{ github.sha }}
 
 
     - name: Build Frontend Image
       run: |
-        docker build -t appacr1603.azurecr.io/frontend:latest ./frontend
+        docker build -t appacr1603.azurecr.io/frontend:${{ github.sha }} ./frontend
 
     - name: Push Frontend Image
       run: |
-        docker push appacr1603.azurecr.io/frontend:latest
+        docker push appacr1603.azurecr.io/frontend:${{ github.sha }}
 
 
     - name: Get AKS Credentials
