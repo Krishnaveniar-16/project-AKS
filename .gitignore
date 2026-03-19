@@ -1,0 +1,26 @@
+# Node.js
+node_modules/
+npm-debug.log
+
+# Environment files
+.env
+.env*
+
+# Logs
+*.log
+
+# Build outputs
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kubernetes secrets (IMPORTANT 🔥)
+k8s/mysql/mysql-secret.yaml
+*.secret.yaml
+docker-compose.yaml
+
+# Optional: kube config
+.kube/
