@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: <ACR_NAME>.azurecr.io/backend:latest
+          image: appacr1603.azurecr.io/backend:latest
           ports:
             - containerPort: 3000
           env:
