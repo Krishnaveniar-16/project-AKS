@@ -16,10 +16,8 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-
     - name: Login to ACR
       run: az acr login --name appacr1603
-
 
     - name: Build Backend Image
       run: |
@@ -28,7 +26,6 @@ jobs:
     - name: Push Backend Image
       run: |
         docker push appacr1603.azurecr.io/backend:${{ github.sha }}
-
 
     - name: Build Frontend Image
       run: |
@@ -45,13 +42,59 @@ jobs:
           --name appAKS1603 \
           --overwrite-existing
 
-
     - name: Apply Kubernetes manifests
       run: kubectl apply -f k8s/
 
- 
     - name: Deploy latest images
       run: |
-         kubectl set image deployment/backend-deployment backend=appacr1603.azurecr.io/backend:${{ github.sha }}
-         kubectl set image deployment/frontend-deployment frontend=appacr1603.azurecr.io/frontend:${{ github.sha }}
-        
+        kubectl set image deployment/backend-deployment backend=appacr1603.azurecr.io/backend:${{ github.sha }}
+        kubectl set image deployment/frontend-deployment frontend=appacr1603.azurecr.io/frontend:${{ github.sha }}
+
+  blue-green-deployment:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get AKS Credentials
+      run: |
+        az aks get-credentials \
+          --resource-group appRG-1603 \
+          --name appAKS1603 \
+          --overwrite-existing
+
+    - name: Blue-Green Backend
+      run: |
+        CURRENT_COLOR=$(kubectl get service backend-service -o jsonpath='{.spec.selector.color}' 2>/dev/null || echo blue)
+        NEW_COLOR=$([ "$CURRENT_COLOR" = blue ] && echo green || echo blue)
+
+        kubectl set image deployment/backend-deployment-$NEW_COLOR \
+        backend=appacr1603.azurecr.io/backend:${{ github.sha }}
+
+        kubectl rollout status deployment/backend-deployment-$NEW_COLOR --timeout=300s
+
+        kubectl patch service backend-service \
+        -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"color\":\"$NEW_COLOR\"}}}"
+
+        OLD_COLOR=$([ "$NEW_COLOR" = blue ] && echo green || echo blue)
+        kubectl scale deployment backend-deployment-$OLD_COLOR --replicas=0 || true
+
+    - name: Blue-Green Frontend
+      run: |
+        CURRENT_COLOR=$(kubectl get service frontend-service -o jsonpath='{.spec.selector.color}' 2>/dev/null || echo blue)
+        NEW_COLOR=$([ "$CURRENT_COLOR" = blue ] && echo green || echo blue)
+
+        kubectl set image deployment/frontend-deployment-$NEW_COLOR \
+        frontend=appacr1603.azurecr.io/frontend:${{ github.sha }}
+
+        kubectl rollout status deployment/frontend-deployment-$NEW_COLOR --timeout=300s
+
+        kubectl patch service frontend-service \
+        -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"color\":\"$NEW_COLOR\"}}}"
+
+        OLD_COLOR=$([ "$NEW_COLOR" = blue ] && echo green || echo blue)
+        kubectl scale deployment frontend-deployment-$OLD_COLOR --replicas=0 || true
